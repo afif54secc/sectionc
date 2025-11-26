@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notices | Section C</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb, #ebedee);
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { color: #ff6f61; margin-bottom: 10px; }
+        h2 { color: #333; margin-bottom: 20px; }
+        #noticeList { max-width: 700px; margin: auto; text-align: left; }
+        .notice {
+            background-color: #fff;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            position: relative;
+        }
+        .notice .edit-btn, .notice .remove-btn {
+            position: absolute;
+            top: 8px;
+            border: none;
+            border-radius: 5px;
+            padding: 2px 6px;
+            cursor: pointer;
+            color: white;
+        }
+        .notice .remove-btn { right: 8px; background: red; display: none; }
+        .notice .edit-btn { right: 50px; background: #4CAF50; display: none; }
+        .admin .edit-btn, .admin .remove-btn { display: block; }
+        #addNoticeContainer textarea {
+            width: 80%;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        #addNoticeContainer button {
+            padding: 10px 15px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 10px;
+            background-color: #ff6f61;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #addNoticeContainer button:hover { background-color: #ff3b2f; }
+        .back-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            border: none;
+            background-color: #ff6f61;
+            color: white;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .back-button:hover { background-color: #ff3b2f; }
+        .notice-date { font-size: 12px; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <h1>📢 Notices | Section C</h1>
+    <h2>Latest updates for the section</h2>
+
+    <div id="addNoticeContainer">
+        <textarea id="noticeContent" placeholder="Enter notice here..."></textarea><br>
+        <button onclick="addNotice()">Add / Update Notice 📝</button>
+    </div>
+
+    <div id="noticeList"></div>
+
+    <a href="homepage.html" class="back-button">⬅️ Back to Homepage</a>
+
+    <script>
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        const addNoticeContainer = document.getElementById('addNoticeContainer');
+        const noticeListDiv = document.getElementById('noticeList');
+        let editIndex = null;
+
+        if(!isAdmin){
+            addNoticeContainer.style.display = 'none';
+            document.body.classList.remove('admin');
+        } else {
+            document.body.classList.add('admin');
+        }
+
+        let notices = JSON.parse(localStorage.getItem('notices') || '[]');
+
+        function saveNotices() { localStorage.setItem('notices', JSON.stringify(notices)); }
+
+        function removeExpiredNotices() {
+            const today = new Date();
+            notices = notices.filter(n => {
+                const nDate = new Date(n.date);
+                const diffDays = Math.floor((today - nDate)/(1000*60*60*24));
+                return diffDays <= 10;
+            });
+            saveNotices();
+        }
+
+        function formatDate(dateStr){
+            const d = new Date(dateStr);
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth()+1).padStart(2, '0');
+            const yy = String(d.getFullYear()).slice(-2);
+            return `${dd}/${mm}/${yy}`;
+        }
+
+        function displayNotices(){
+            removeExpiredNotices();
+            noticeListDiv.innerHTML = '';
+            notices.forEach((n, idx) => {
+                const div = document.createElement('div');
+                div.classList.add('notice');
+                div.innerHTML = `
+                    <div>${n.content}</div>
+                    <div class="notice-date">📅 ${formatDate(n.date)}</div>
+                    ${isAdmin ? `
+                        <button class="edit-btn" onclick="editNotice(${idx})">✏️ Edit</button>
+                        <button class="remove-btn" onclick="removeNotice(${idx})">❌</button>
+                    ` : ''}
+                `;
+                noticeListDiv.appendChild(div);
+            });
+        }
+
+        function addNotice(){
+            const content = document.getElementById('noticeContent').value.trim();
+            if(!content) return alert('Please enter notice content!');
+
+            if(editIndex !== null){
+                notices[editIndex].content = content;
+                notices[editIndex].date = new Date().toISOString(); // update date on edit
+                editIndex = null;
+            } else {
+                notices.push({content, date: new Date().toISOString()});
+            }
+
+            saveNotices();
+            clearForm();
+            displayNotices();
+        }
+
+        function editNotice(idx){
+            document.getElementById('noticeContent').value = notices[idx].content;
+            editIndex = idx;
+        }
+
+        function removeNotice(idx){
+            if(confirm('Are you sure you want to remove this notice?')){
+                notices.splice(idx,1);
+                saveNotices();
+                displayNotices();
+            }
+        }
+
+        function clearForm(){
+            document.getElementById('noticeContent').value = '';
+        }
+
+        displayNotices();
+        setInterval(displayNotices, 60000); // refresh every 1 minute
+    </script>
+</body>
+</html>

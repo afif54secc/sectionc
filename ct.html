@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upcoming Class Tests | Section C</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb, #ebedee);
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { color: #ff6f61; margin-bottom: 10px; }
+        h2 { color: #333; margin-bottom: 20px; }
+        #ctList { max-width: 700px; margin: auto; text-align: left; }
+        .ctItem {
+            background-color: #fff;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            position: relative;
+        }
+        .ctItem .edit-btn, .ctItem .remove-btn {
+            position: absolute;
+            top: 8px;
+            border: none;
+            border-radius: 5px;
+            padding: 2px 6px;
+            cursor: pointer;
+            color: white;
+        }
+        .ctItem .remove-btn { right: 8px; background: red; display: none; }
+        .ctItem .edit-btn { right: 50px; background: #4CAF50; display: none; }
+        .admin .edit-btn, .admin .remove-btn { display: block; }
+        #addCTContainer input {
+            width: 70%;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        #addCTContainer button {
+            padding: 10px 15px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 10px;
+            background-color: #ff6f61;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #addCTContainer button:hover { background-color: #ff3b2f; }
+        .back-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            border: none;
+            background-color: #ff6f61;
+            color: white;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .back-button:hover { background-color: #ff3b2f; }
+        .ct-date { font-size: 12px; color: #666; margin-top: 5px; }
+    </style>
+</head>
+<body>
+    <h1>📝 Upcoming Class Tests | Section C</h1>
+    <h2>Check your upcoming CTs</h2>
+
+    <div id="addCTContainer">
+        <input type="text" id="ctSubject" placeholder="Subject Name"><br>
+        <input type="text" id="ctTopic" placeholder="Topic"><br>
+        <input type="text" id="ctRoom" placeholder="Classroom"><br>
+        <input type="date" id="ctDate"><br>
+        <input type="time" id="ctTime"><br>
+        <button onclick="addCT()">Add / Update CT 📌</button>
+    </div>
+
+    <div id="ctList"></div>
+
+    <a href="homepage.html" class="back-button">⬅️ Back to Homepage</a>
+
+    <script>
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        const addCTContainer = document.getElementById('addCTContainer');
+        const ctListDiv = document.getElementById('ctList');
+        let editIndex = null;
+
+        if(!isAdmin){
+            addCTContainer.style.display = 'none';
+            document.body.classList.remove('admin');
+        } else {
+            document.body.classList.add('admin');
+        }
+
+        let cts = JSON.parse(localStorage.getItem('classTests') || '[]');
+
+        function saveCTs(){ localStorage.setItem('classTests', JSON.stringify(cts)); }
+
+        function removeExpiredCTs(){
+            const today = new Date();
+            cts = cts.filter(ct => {
+                const ctDate = new Date(ct.date);
+                const diffDays = Math.floor((today - ctDate)/(1000*60*60*24));
+                return diffDays <= 10;
+            });
+            saveCTs();
+        }
+
+        function formatDate(dateStr){
+            const d = new Date(dateStr);
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth()+1).padStart(2, '0');
+            const yy = String(d.getFullYear()).slice(-2);
+            return `${dd}/${mm}/${yy}`;
+        }
+
+        function displayCTs(){
+            removeExpiredCTs();
+            // Sort by date ascending
+            cts.sort((a,b) => new Date(a.date) - new Date(b.date));
+            ctListDiv.innerHTML = '';
+            cts.forEach((ct, idx) => {
+                const div = document.createElement('div');
+                div.classList.add('ctItem');
+                div.innerHTML = `
+                    <div><strong>Subject:</strong> ${ct.subject}</div>
+                    <div><strong>Topic:</strong> ${ct.topic}</div>
+                    <div><strong>Classroom:</strong> ${ct.room}</div>
+                    <div><strong>Date:</strong> ${formatDate(ct.date)}</div>
+                    <div><strong>Time:</strong> ${ct.time}</div>
+                    ${isAdmin ? `
+                        <button class="edit-btn" onclick="editCT(${idx})">✏️ Edit</button>
+                        <button class="remove-btn" onclick="removeCT(${idx})">❌</button>
+                    ` : ''}
+                `;
+                ctListDiv.appendChild(div);
+            });
+        }
+
+        function addCT(){
+            const subject = document.getElementById('ctSubject').value.trim();
+            const topic = document.getElementById('ctTopic').value.trim();
+            const room = document.getElementById('ctRoom').value.trim();
+            const date = document.getElementById('ctDate').value;
+            const time = document.getElementById('ctTime').value;
+
+            if(!subject || !topic || !room || !date || !time) return alert('Please fill all fields!');
+
+            if(editIndex !== null){
+                cts[editIndex] = {subject, topic, room, date, time};
+                editIndex = null;
+            } else {
+                cts.push({subject, topic, room, date, time});
+            }
+
+            saveCTs();
+            clearForm();
+            displayCTs();
+        }
+
+        function editCT(idx){
+            const ct = cts[idx];
+            document.getElementById('ctSubject').value = ct.subject;
+            document.getElementById('ctTopic').value = ct.topic;
+            document.getElementById('ctRoom').value = ct.room;
+            document.getElementById('ctDate').value = ct.date;
+            document.getElementById('ctTime').value = ct.time;
+            editIndex = idx;
+        }
+
+        function removeCT(idx){
+            if(confirm('Are you sure you want to remove this CT?')){
+                cts.splice(idx,1);
+                saveCTs();
+                displayCTs();
+            }
+        }
+
+        function clearForm(){
+            document.getElementById('ctSubject').value = '';
+            document.getElementById('ctTopic').value = '';
+            document.getElementById('ctRoom').value = '';
+            document.getElementById('ctDate').value = '';
+            document.getElementById('ctTime').value = '';
+        }
+
+        displayCTs();
+        setInterval(displayCTs, 60000); // refresh every 1 min
+    </script>
+</body>
+</html>

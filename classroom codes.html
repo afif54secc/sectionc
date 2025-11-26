@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classroom Codes | Section C</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb, #ebedee);
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { color: #ff6f61; margin-bottom: 10px; }
+        h2 { color: #333; margin-bottom: 20px; }
+        #codeList { max-width: 700px; margin: auto; text-align: left; }
+        .codeItem {
+            background-color: #fff;
+            padding: 12px 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            box-shadow: 0 3px 8px rgba(0,0,0,0.15);
+            position: relative;
+        }
+        .codeItem .edit-btn, .codeItem .remove-btn {
+            position: absolute;
+            top: 8px;
+            border: none;
+            border-radius: 5px;
+            padding: 2px 6px;
+            cursor: pointer;
+            color: white;
+        }
+        .codeItem .remove-btn { right: 8px; background: red; display: none; }
+        .codeItem .edit-btn { right: 60px; background: #4CAF50; display: none; }
+        .admin .edit-btn, .admin .remove-btn { display: block; }
+        #addCodeContainer input {
+            width: 70%;
+            padding: 8px;
+            border-radius: 10px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+        #addCodeContainer button {
+            padding: 10px 15px;
+            margin-top: 5px;
+            border: none;
+            border-radius: 10px;
+            background-color: #ff6f61;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+        }
+        #addCodeContainer button:hover { background-color: #ff3b2f; }
+        .back-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            border: none;
+            background-color: #ff6f61;
+            color: white;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .back-button:hover { background-color: #ff3b2f; }
+        label { font-weight: 600; }
+    </style>
+</head>
+<body>
+    <h1>💻 Classroom Codes</h1>
+
+    <div id="addCodeContainer">
+        <label>Subject Name:</label><br>
+        <input type="text" id="codeSubject" placeholder="Enter Subject Name"><br>
+
+        <label>Faculty Name:</label><br>
+        <input type="text" id="codeFaculty" placeholder="Enter Faculty Name"><br>
+
+        <label>Classroom Code/Link:</label><br>
+        <input type="text" id="codeLink" placeholder="Enter Code or Link"><br>
+
+        <button onclick="addCode()">Add / Update Code 📌</button>
+    </div>
+
+    <div id="codeList"></div>
+
+    <a href="homepage.html" class="back-button">⬅️ Back to Homepage</a>
+
+    <script>
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        const addCodeContainer = document.getElementById('addCodeContainer');
+        const codeListDiv = document.getElementById('codeList');
+        let editIndex = null;
+
+        if(!isAdmin){
+            addCodeContainer.style.display = 'none';
+            document.body.classList.remove('admin');
+        } else {
+            document.body.classList.add('admin');
+        }
+
+        // Load classroom codes from localStorage
+        let codes = JSON.parse(localStorage.getItem('classroomCodes') || '[]');
+
+        function saveCodes() { localStorage.setItem('classroomCodes', JSON.stringify(codes)); }
+
+        function displayCodes(){
+            // Sort codes alphabetically by subject
+            codes.sort((a, b) => a.subject.toLowerCase().localeCompare(b.subject.toLowerCase()));
+
+            codeListDiv.innerHTML = '';
+            codes.forEach((c, idx) => {
+                const div = document.createElement('div');
+                div.classList.add('codeItem');
+                div.innerHTML = `
+                    <div><strong>Subject:</strong> ${c.subject}</div>
+                    <div><strong>Faculty:</strong> ${c.faculty}</div>
+                    <div><strong>Link:</strong> <a href="${c.link}" target="_blank">${c.link}</a></div>
+                    ${isAdmin ? `
+                        <button class="edit-btn" onclick="editCode(${idx})">✏️ Edit</button>
+                        <button class="remove-btn" onclick="removeCode(${idx})">❌</button>
+                    ` : ''}
+                `;
+                codeListDiv.appendChild(div);
+            });
+        }
+
+        function addCode(){
+            const subject = document.getElementById('codeSubject').value.trim();
+            const faculty = document.getElementById('codeFaculty').value.trim();
+            const link = document.getElementById('codeLink').value.trim();
+
+            if(!subject || !faculty || !link) return alert('Please fill all fields!');
+
+            if(editIndex !== null){
+                codes[editIndex] = {subject, faculty, link};
+                editIndex = null;
+            } else {
+                codes.push({subject, faculty, link});
+            }
+
+            saveCodes();
+            clearForm();
+            displayCodes();
+        }
+
+        function editCode(idx){
+            const c = codes[idx];
+            document.getElementById('codeSubject').value = c.subject;
+            document.getElementById('codeFaculty').value = c.faculty;
+            document.getElementById('codeLink').value = c.link;
+            editIndex = idx;
+        }
+
+        function removeCode(idx){
+            if(confirm('Are you sure you want to remove this classroom code?')){
+                codes.splice(idx,1);
+                saveCodes();
+                displayCodes();
+            }
+        }
+
+        function clearForm(){
+            document.getElementById('codeSubject').value = '';
+            document.getElementById('codeFaculty').value = '';
+            document.getElementById('codeLink').value = '';
+        }
+
+        displayCodes();
+    </script>
+</body>
+</html>

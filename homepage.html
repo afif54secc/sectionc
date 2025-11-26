@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UAP - CE'54 | Section C</title>
+    <!-- Google Fonts: Poppins -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #a1c4fd, #c2e9fb);
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 36px;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        h2 {
+            font-size: 24px;
+            color: #555;
+            margin-bottom: 20px;
+        }
+        p {
+            font-size: 18px;
+            margin-bottom: 30px;
+            color: #444;
+        }
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        .buttons button {
+            padding: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            background: #ff6f61;
+            color: white;
+            transition: 0.3s;
+        }
+        .buttons button:hover {
+            background: #ff3b2f;
+        }
+        .contact, .footer {
+            font-size: 14px;
+            color: #333;
+            margin-top: 10px;
+        }
+        .admin-panel {
+            background: #fff3cd;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            color: #856404;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>UAP - CE'54 | Section C 🎓</h1>
+        <h2>2-2 | Fall 2025 📖</h2>
+        <p>“Connecting our section, sharing updates, building success together. ✨💪”</p>
+
+        <div id="adminPanel" class="admin-panel" style="display:none;">
+            👑 Admin Panel Access Enabled
+        </div>
+
+        <div class="buttons">
+            <a href="classroutine.html"><button>📅 Class Routine</button></a>
+            <a href="notice.html"><button>📝 Notices</button></a>
+            <a href="ct.html"><button>🧪 Upcoming Class Tests</button></a>
+            <a href="resources.html"><button>📚 Resources & Materials</button></a>
+            <a href="classroom codes.html"><button>💻 Classroom Codes</button></a>
+            <a href="mid.html"><button>📊 Tentative Midterm Exam Routine</button></a>
+            <a href="final.html"><button>📝 Tentative Final Exam Routine</button></a>
+            <a href="academic calender.html"><button>📆 Academic Calendar</button></a>
+        </div>
+
+        <div class="contact">
+            Contact CR: <br>
+            Md. Afif Islam | 24105106 | ☎️ +880 15 2175 0149 <br>
+            Rakib Hasan Sourav | 24105111 | ☎️ +880 19 6479 9840
+        </div>
+        <div class="footer">
+            All rights reserved by © Afif106
+        </div>
+    </div>
+
+    <script>
+        // Check login
+        const regNo = localStorage.getItem('regNo');
+        const isAdmin = localStorage.getItem('isAdmin');
+        if(!regNo) {
+            window.location.href = "login.html";
+        }
+
+        if(isAdmin === 'true') {
+            document.getElementById('adminPanel').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

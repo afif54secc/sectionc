@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resources & Materials | Section C</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb, #ebedee);
+            margin: 0;
+            padding: 20px;
+            text-align: center;
+        }
+        h1 { color: #ff6f61; margin-bottom: 10px; }
+        h2 { color: #333; margin-bottom: 20px; }
+        .subject-list {
+            max-width: 700px;
+            margin: auto;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+        .subject-btn {
+            padding: 12px;
+            border-radius: 10px;
+            border: none;
+            background-color: #4CAF50;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .subject-btn:hover { background-color: #45a049; }
+        .subject-btn.active { background-color: #ff6f61; color: white; }
+        .back-button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            border: none;
+            background-color: #ff6f61;
+            color: white;
+            font-size: 16px;
+            border-radius: 10px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .back-button:hover { background-color: #ff3b2f; }
+        #resourceContainer { max-width: 700px; margin: 20px auto; text-align: left; }
+        #resourceContainer ul { padding-left: 20px; }
+        .resource-item { margin-bottom: 8px; }
+        .edit-btn, .remove-btn {
+            border: none;
+            border-radius: 5px;
+            padding: 2px 6px;
+            margin-left: 5px;
+            cursor: pointer;
+            color: white;
+        }
+        .edit-btn { background-color: #4CAF50; }
+        .remove-btn { background-color: red; }
+    </style>
+</head>
+<body>
+    <h1>📚 Resources & Materials | Section C</h1>
+    <h2>Click a subject to view resources</h2>
+
+    <div class="subject-list" id="subjectList"></div>
+    <div id="resourceContainer"></div>
+    <a href="homepage.html" class="back-button">⬅️ Back to Homepage</a>
+
+    <script>
+        const isAdmin = localStorage.getItem('isAdmin') === 'true';
+        const subjectListDiv = document.getElementById('subjectList');
+        const resourceContainer = document.getElementById('resourceContainer');
+
+        let subjects = JSON.parse(localStorage.getItem('subjects') || '[]');
+        if(subjects.length === 0){
+            subjects = ["Math","Physics","Chemistry","CSE","EEE","ME","Economics","English","Bangla","Islamic Studies"];
+            localStorage.setItem('subjects', JSON.stringify(subjects));
+        }
+
+        let resources = JSON.parse(localStorage.getItem('resources') || '{}');
+        subjects.forEach(sub => { if(!resources[sub]) resources[sub] = []; });
+        localStorage.setItem('resources', JSON.stringify(resources));
+
+        let activeSubject = null; // current selected subject
+
+        function displaySubjects(){
+            subjectListDiv.innerHTML = '';
+            subjects.forEach(sub => {
+                const btn = document.createElement('button');
+                btn.className = 'subject-btn' + (sub === activeSubject ? ' active' : '');
+                btn.innerText = sub;
+                btn.onclick = () => {
+                    activeSubject = sub;
+                    displaySubjects(); // highlight
+                    displayResources(sub);
+                };
+                subjectListDiv.appendChild(btn);
+            });
+        }
+
+        function displayResources(subject){
+            resources = JSON.parse(localStorage.getItem('resources') || '{}');
+            resourceContainer.innerHTML = `<h3>${subject} Resources:</h3>`;
+
+            if(isAdmin){
+                resourceContainer.innerHTML += `
+                    <input type="file" id="resFile"><br>
+                    <button onclick="addResource('${subject}')">Upload PDF ➕</button>
+                `;
+            }
+
+            if(resources[subject].length === 0){
+                resourceContainer.innerHTML += '<p>No resources uploaded yet.</p>';
+                return;
+            }
+
+            const ul = document.createElement('ul');
+            resources[subject].forEach((res, idx) => {
+                const li = document.createElement('li');
+                li.className = 'resource-item';
+                const blob = new Blob([res.data], {type: 'application/pdf'});
+                const url = URL.createObjectURL(blob);
+                li.innerHTML = `<a href="${url}" target="_blank">${res.name}</a>`;
+
+                if(isAdmin){
+                    const div = document.createElement('div');
+                    div.style.display = 'inline';
+                    div.innerHTML = `
+                        <button class="remove-btn" onclick="removeResource('${subject}', ${idx})">❌</button>
+                    `;
+                    li.appendChild(div);
+                }
+
+                ul.appendChild(li);
+            });
+            resourceContainer.appendChild(ul);
+        }
+
+        function addResource(subject){
+            const fileInput = document.getElementById('resFile');
+            if(fileInput.files.length === 0) return alert('Please select a PDF file!');
+            const file = fileInput.files[0];
+            if(file.type !== "application/pdf") return alert('Only PDF files allowed!');
+
+            const reader = new FileReader();
+            reader.onload = function(e){
+                const base64Data = e.target.result.split(',')[1]; // base64 only
+                resources[subject].push({name: file.name, data: atob(base64Data)});
+                localStorage.setItem('resources', JSON.stringify(resources));
+                displayResources(subject);
+            }
+            reader.readAsDataURL(file);
+            fileInput.value = '';
+        }
+
+        function removeResource(subject, idx){
+            if(confirm('Are you sure you want to remove this resource?')){
+                resources[subject].splice(idx,1);
+                localStorage.setItem('resources', JSON.stringify(resources));
+                displayResources(subject);
+            }
+        }
+
+        displaySubjects();
+        if(activeSubject) displayResources(activeSubject);
+    </script>
+</body>
+</html>
